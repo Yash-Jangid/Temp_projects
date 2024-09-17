@@ -1,11 +1,11 @@
 import { IsOptional, IsString } from 'class-validator';
 
-export class PaginationQueryDto {
+export class SortEventDto {
     @IsOptional()
     @IsString()
-    readonly limit?: string;
+    name?: 'ASC' | 'DESC';
 
     @IsOptional()
     @IsString()
-    readonly offset?: string;
+    date?: 'ASC' | 'DESC';
 }

@@ -6,7 +6,8 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { FilterEventDto } from './dto/filter-event.dto';
 import { SearchEventDto } from './dto/search-event.dto';
-
+import { Op } from 'sequelize';
+import { SortEventDto } from './dto/sort-event.dto';
 @Injectable()
 export class EventsService {
   constructor(
@@ -15,35 +16,62 @@ export class EventsService {
   ) { }
 
   // Create Event with images
-  async createEvent(createEventDto: CreateEventDto, imageFiles: string[]) {
-    return this.eventModel.create({
-      ...createEventDto,
-      images: imageFiles, // Store the uploaded images
-    });
+  async createEvent(createEventDto: CreateEventDto, imageFiles: string[]): Promise<Event> {
+    const event = await this.eventModel.create({ ...createEventDto, images: imageFiles });
+    return event;
   }
 
-  // Get all events with pagination, filter, and search
   async getAllEvents(
-    paginationQuery: PaginationQueryDto,
-    filterQuery: FilterEventDto,
     searchQuery: SearchEventDto,
+    sortQuery: SortEventDto
   ) {
-    const { limit, offset } = paginationQuery;
-    const whereClause = {};
+    // Build the where clause for filtering and searching
+    const whereClause: any = {};
 
-    // Apply filtering (e.g., by name or date)
-    if (filterQuery.name) {
-      whereClause['name'] = filterQuery.name;
-    }
-    if (filterQuery.startDate) {
-      whereClause['startDate'] = filterQuery.startDate;
+    // Add search conditions
+    if (searchQuery) {
+      const searchConditions: any[] = [];
+      Object.keys(searchQuery).forEach((key) => {
+        if (searchQuery[key] !== undefined && searchQuery[key] !== null) {
+          // Create search conditions for each column
+          searchConditions.push({
+            [Op.or]: [
+              { name: { [Op.like]: `%${searchQuery[key]}%` } },
+              { description: { [Op.like]: `%${searchQuery[key]}%` } }
+            ],
+          });
+        }
+      });
+
+      if (searchConditions.length > 0) {
+        whereClause[Op.and] = searchConditions;
+      }
     }
 
-    return this.eventModel.findAndCountAll({
-      where: whereClause,
-      limit: limit,
-      offset: offset,
-    });
+    // Add sorting conditions
+    const order: any[] = [];
+    if (sortQuery) {
+      Object.keys(sortQuery).forEach((key) => {
+        if (sortQuery[key] && ['ASC', 'DESC'].includes(sortQuery[key].toUpperCase())) {
+          order.push([key, sortQuery[key].toUpperCase()]);
+        }
+      });
+    }
+
+    try {
+      const { count, rows } = await this.eventModel.findAndCountAll({
+        where: whereClause,
+        order  // Apply the sorting
+      });
+
+      return {
+        count,
+        rows,
+      };
+    } catch (error) {
+      // Handle errors if needed
+      throw new Error(`Failed to fetch events: ${error.message}`);
+    }
   }
 
   // Get event by ID

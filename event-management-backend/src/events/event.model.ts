@@ -25,8 +25,7 @@ export class Event extends Model<Event> {
   @BelongsTo(() => User)
   user: User;
 
-  // Store images as an array of strings
-  @Column({ type: DataType.ARRAY(DataType.STRING), allowNull: true })
+  @Column(DataType.ARRAY(DataType.STRING))
   images: string[];
 
   @CreatedAt
