@@ -24,13 +24,13 @@ const EventList = () => {
             if (searchTerm) {
                 console.log('searchTerm', searchTerm);
 
-                response = await axios.get('http://localhost:3000/events', {
+                response = await axios.get('http://localhost:3005/events', {
                     params: {
                         searchTerm: searchTerm
                     }
                 })
             } else {
-                response = await axios.get('http://localhost:3000/events')
+                response = await axios.get('http://localhost:3005/events')
             }
             setEvents(response.data.rows);
         } catch (error) {
@@ -104,7 +104,7 @@ const EventList = () => {
                                     {JSON.parse(event.images).map((image: string, index: number) => (
                                         <li key={index}>
                                             <img
-                                                src={`http://localhost:3000/uploads/${image}`}
+                                                src={`http://localhost:3005/uploads/${image}`}
                                                 alt={`Event ${event.id} image ${index}`}
                                                 className="w-24 h-24 object-cover"
                                             />

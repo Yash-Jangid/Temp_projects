@@ -7,7 +7,6 @@ import * as fs from 'fs';
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-    // Get the path to the root directory of the project
     const rootDir = path.resolve(__dirname, '..', '..');
     const uploadsPath = path.join(rootDir, 'uploads');
 
@@ -20,18 +19,16 @@ async function bootstrap() {
     } else {
         console.error('Uploads directory does not exist. Please ensure it is created manually.');
     }
-
-    // Serve static files from the 'uploads' directory in the root
     app.useStaticAssets(uploadsPath, {
         prefix: '/uploads/',
     });
 
     app.enableCors({
-        origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+        origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         allowedHeaders: 'Content-Type, Accept, Authorization',
     });
 
-    await app.listen(process.env.PORT || 3000);
+    await app.listen(process.env.PORT);
 }
 bootstrap();
